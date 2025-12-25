@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Chúc mừng Giáng Sinh </title>
+<title>Chúc mừng Giáng Sinh Trang</title>
 
 <style>
     body {
@@ -21,20 +21,40 @@
         transform: translate(-50%, -50%);
         text-align: center;
         z-index: 2;
+        width: 100%;
+        padding: 0 12px;
+        box-sizing: border-box;
     }
 
-    h1 {
-    font-size: 3em;
-    margin-bottom: 20px;
-    color: #ffdddd;
-    white-space: nowrap;   /* QUAN TRỌNG */
+    /* Chữ gõ từng ký tự - luôn 1 dòng + con trỏ nhấp nháy */
+    #typing {
+        font-size: clamp(1.5em, 5vw, 3em);
+        margin: 0 0 18px 0;
+        color: #ffdddd;
+        white-space: nowrap;      /* luôn 1 dòng */
+        display: inline-block;
+        border-right: 3px solid #ffdddd;
+        padding-right: 6px;
+        animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+        0% { border-color: transparent; }
+        50% { border-color: #ffdddd; }
+        100% { border-color: transparent; }
     }
 
     .heart {
         font-size: 3em;
         color: #ff4d6d;
         animation: heartbeat 1.2s infinite;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
+        opacity: 0;              /* sẽ hiện sau khi gõ xong */
+        transition: opacity 0.6s ease;
+    }
+
+    .heart.show {
+        opacity: 1;
     }
 
     button {
@@ -71,7 +91,7 @@
 
 <body>
 
-<!-- Nhạc Giáng Sinh -->
+<!-- Nhạc (đặt file feliz_navidad.mp3 cùng thư mục / cùng repo) -->
 <audio id="music" loop>
     <source src="feliz_navidad.mp3" type="audio/mpeg">
 </audio>
@@ -79,21 +99,50 @@
 <canvas id="snow"></canvas>
 
 <div class="container">
-    <h1>🎄 Chúc mừng Giáng Sinh Cô hàng xóm 🎄</h1>
+    <h1 id="typing"></h1>
+    <div id="heart" class="heart">❤️</div>
     <button onclick="playMusic()">▶ Bật nhạc</button>
 </div>
 
 <script>
+    // ===== Nhạc =====
     function playMusic() {
         document.getElementById("music").play();
     }
 
+    // (Tuỳ chọn) Click bất kỳ lần đầu cũng bật nhạc (đỡ bị chặn autoplay)
+    const music = document.getElementById("music");
+    document.body.addEventListener("click", () => {
+        music.play().catch(() => {});
+    }, { once: true });
+
+    // ===== Typewriter =====
+    const text = "🎄 Chúc mừng Giáng Sinh Cô hàng xóm 🎄";
+    const typingElement = document.getElementById("typing");
+    const heartEl = document.getElementById("heart");
+    let idx = 0;
+
+    function typeEffect() {
+        if (idx < text.length) {
+            typingElement.textContent += text.charAt(idx);
+            idx++;
+            setTimeout(typeEffect, 120); // tốc độ gõ (ms)
+        } else {
+            // gõ xong: hiện tim
+            heartEl.classList.add("show");
+            // tắt con trỏ (tuỳ chọn). Nếu muốn giữ, bỏ dòng dưới.
+            typingElement.style.borderRight = "none";
+            typingElement.style.animation = "none";
+        }
+    }
+    typeEffect();
+
+    // ===== Tuyết rơi =====
     const canvas = document.getElementById("snow");
     const ctx = canvas.getContext("2d");
 
     let w = canvas.width = window.innerWidth;
     let h = canvas.height = window.innerHeight;
-
     let snowflakes = [];
 
     function createSnowflakes() {
@@ -112,7 +161,7 @@
         ctx.clearRect(0, 0, w, h);
         ctx.fillStyle = "white";
         ctx.beginPath();
-        for (let f of snowflakes) {
+        for (const f of snowflakes) {
             ctx.moveTo(f.x, f.y);
             ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
         }
@@ -123,9 +172,10 @@
     let angle = 0;
     function moveSnowflakes() {
         angle += 0.01;
-        for (let f of snowflakes) {
+        for (const f of snowflakes) {
             f.y += Math.pow(f.d, 2) + 1;
             f.x += Math.sin(angle) * 1.5;
+
             if (f.y > h) {
                 f.y = 0;
                 f.x = Math.random() * w;
@@ -150,6 +200,3 @@
 
 </body>
 </html>
-
-
-
